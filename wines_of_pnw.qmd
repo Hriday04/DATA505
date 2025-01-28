@@ -1,0 +1,254 @@
+---
+title: "Wines of PNW"
+format:
+  html:
+    code-fold: true
+jupyter: python3
+---
+
+## Prerequisite
+
+- I assume a Python/VS Code/Quarto workflow.
+    - Review [this document](Python00.html)
+- I assume familiarity with Machine Learning in R
+    - Review [these slides](Session01.html)
+
+
+## Agenda
+
+1.  Python Overview
+2.  Review of Regression
+3.  Classification
+4.  Basic Feature Engineering
+
+## Quarto
+
+-   I switch from a R backend to a Python backend.
+-   I add the following below my title in my .qmd header:
+    -   `jupyter: python3`
+
+```yml         
+title: "Machine Learning in Python"
+subtitle: "Applied Machine Learning"
+author: "Hriday Raj"
+  
+jupyter: python3
+```
+
+## Pip
+
+-   In Python, we can typically install packages via `pip`
+-   It is more typical to use `pip` at commandline.
+
+``` bash
+python -m pip install sampleproject
+```
+
+-   Here is a 'clean' way to do so from within the Python
+
+```{python Pip}
+import subprocess  # A base package we need to install other packages
+import sys         # A base package we need to install other packages
+install = lambda package : subprocess.check_call([sys.executable, 
+                                                  '-m', 
+                                                  'pip', 
+                                                  'install', 
+                                                  package])
+```
+
+## Packages
+
+-   I'll build a list of packages then install them via a loop.
+    -   Some (numpy, matplotlib) required for Quarto.
+
+```{python Packages}
+python_data_stack = ["numpy", "pandas", "matplotlib", "seaborn"]
+r_data_stack = ['pyreadr', 'statsmodels']
+packages = python_data_stack + r_data_stack + ["scikit-learn"]
+
+_ = [install(package) for package in packages]
+```
+
+-   I use `_ =` to discard the result of the process.
+    -   This ignores errors - remove to debug.
+
+## Import
+
+-   Python packages use `import` rather than `library()`
+-   Python base data stack
+```{python Import}
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+```
+-   R & statistics
+```{python}
+import pyreadr
+import statsmodels.api as sm
+import statsmodels.formula.api as smf
+```
+
+## ML Library
+-   There are 3.5 Python ML libraries that matter
+    -   Scikit-learn, mainline ML
+    -   Torch, deep learning
+    -   Tensorflow, deep learning
+    -   PySpark MLlib, MLOps
+```{python scikit}
+# Common to include parts of, not all of, sklearn
+from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
+```
+**Abstract:**
+
+This is a technical blog post of **both** an HTML file *and* [.qmd file](src/wine_of_pnw.qmd) hosted on GitHub pages.
+
+# Setup
+
+1.  Change the author of this RMD file to be yourself and delete this line.
+2.  Modify if necessary the below code so that you can successfully load `wine.rds` then delete this line.
+3.  In the space provided after the R chunk, explain what thecode is doing (line by line) then delete this line.
+4.  Get your [GitHub Pages](https://docs.github.com/en/pages/quickstart) ready.
+
+**Step Up Code:**
+```{python}
+rds = 'wine.rds'
+#pyreadr.download_file(url + rds, rds) 
+wine = pyreadr.read_r(rds)[None]      
+str(wine.info()) # string for slide formatting
+```
+```{python}
+wine = wine[(wine["province"]=="Oregon") | (wine["province"]=="California" )| (wine["province"]=="New York")]
+wine['cherry'] = wine['description'].str.contains(r'[Cc]herry', na=False).astype(int)
+# Add 'lprice' column
+wine['lprice'] = np.log(wine['price'])
+wine = wine[['lprice', 'points', 'cherry', 'province']]
+
+```
+
+**Explanataion:**
+
+> <span style="color:red;font-weight:bold">TODO</span>: *write your line-by-line explanation of the code here*
+
+This code first pulls the data from a file called wine.rds then filters it by the column province based on or conditions for values.
+
+The code then creates a column 'cherry' as a boolean for if the descripriton of the observation contains the word cherry,. It then creates a column 'lprice' which is the logagrtim of the price of the observation
+
+It finally subsets the data frame into 4 columns
+# Multiple Regression
+
+## Linear Models
+
+First run a linear regression model with log of price as the dependent variable and 'points' and 'cherry' as features (variables).
+
+```{python}
+# TODO: hint: m1 <- lm(lprice ~ points + cherry)
+x = wine[["points", "cherry"]]
+y = wine["lprice"]
+m1 = sm.OLS(y,x).fit()
+m1.summary()
+rmse = np.sqrt(m1.mse_resid)
+print(f'RMSE: {rmse}')
+```
+
+**Explanataion:**
+
+> <span style="color:red;font-weight:bold">TODO</span>: *write your line-by-line explanation of the code here*
+x is the independent variables. y is the depedent variable.
+The third line is stats model linear regression package and we are fitting data.
+The fourth line is the summary of the model.
+Taking square riit of the mean residuals.
+
+> <span style="color:red;font-weight:bold">TODO</span>: *report and explain the RMSE*
+The RMSE is .5054 which is that each actual dependent value is on average .5054 away from the predicted value.
+## Interaction Models
+
+Add an interaction between 'points' and 'cherry'. 
+
+```{python}
+x = wine["points"]*wine["cherry"]
+
+y = wine["lprice"]
+m2 = sm.OLS(y,x).fit()
+m2.summary()
+m2_rmse = np.sqrt(m2.mse_resid)
+print(f'RMSE: {m2_rmse}')
+```
+
+> <span style="color:red;font-weight:bold">TODO</span>: *write your line-by-line explanation of the code here*
+Multply dependent variables by each other.
+same as previous code but with new model
+> <span style="color:red;font-weight:bold">TODO</span>: *report and explain the RMSE*
+The RMSE is 3.0302 and is much higher than the previous model which means the model has a lot more noise when interacting vs just using them.
+### The Interaction Variable
+
+> <span style="color:red;font-weight:bold">TODO</span>: *interpret the coefficient on the interaction variable.* <br>[Explain as you would to a non-technical manager.](https://youtube.com/clip/UgkxY7ohjoimIef6zpPLjgQHqJcJHeZptuVm?feature=shared)
+The coefficient is how much adding one of the cherry/points value impacts the price.
+## Applications
+
+Determine which province (Oregon, California, or New York), does the 'cherry' feature in the data affect price most?
+(wine["province"]=="Oregon")
+```{python}
+# TODO: 
+ore = wine[(wine["province"]=="Oregon")]
+cal = wine[(wine["province"]=="California")]
+nyc = wine[(wine["province"]=="New York")]
+
+x_o = ore["cherry"]
+x_c = cal["cherry"]
+x_n = nyc["cherry"]
+
+y_o = ore["lprice"]
+y_c = cal["lprice"]
+y_n = nyc["lprice"]
+
+more = sm.OLS(y_o,x_o).fit()
+mcal = sm.OLS(y_c,x_c).fit()
+mnyc = sm.OLS(y_n,x_n).fit()
+
+
+more.summary()
+more_rmse = np.sqrt(more.mse_resid)
+print(f'RMSE: {m2_rmse}')
+
+mcal.summary()
+mcal_rmse = np.sqrt(mcal.mse_resid)
+print(f'RMSE: {mcal_rmse}')
+
+mnyc.summary()
+mnyc_rmse = np.sqrt(mnyc.mse_resid)
+print(f'RMSE: {mnyc_rmse}')
+```
+
+> <span style="color:red;font-weight:bold">TODO</span>: *write your line-by-line explanation of the code here, and explain your answer.*
+For Oregon: 3.7079, California: 3.6684, New York 3.1930. Cherries within the decription affects the price for Oregon wines the most.
+
+First I create 3 data frames for each subset of data, then I independently perform ordered linear regression on each dataset.
+# Scenarios
+
+## On Accuracy
+
+Imagine a model to distinguish New York wines from those in California and Oregon. After a few days of work, you take some measurements and note: "I've achieved 91% accuracy on my model!" 
+
+Should you be impressed? Why or why not?
+
+```{python}
+# TODO: Use simple descriptive statistics from the data to justify your answer.
+```
+I should not be very impressed since the california and Oregon wines far outnumber the other New York observations accounting for roughly 25/27 of the data.
+
+> <span style="color:red;font-weight:bold">TODO</span>: *describe your reasoning here*
+
+## On Ethics
+
+Why is understanding this vignette important to use machine learning in an ethical manner?
+Our training of models matters only as much as the data Quality.
+> <span style="color:red;font-weight:bold">TODO</span>: *describe your reasoning here*
+
+## Ignorance is no excuse
+Imagine you are working on a model to predict the likelihood that an individual loses their job as the result of the changing federal policy under new presidential administrations. You have a very large dataset with many hundreds of features, but you are worried that including indicators like age, income or gender might pose some ethical problems. When you discuss these concerns with your boss, she tells you to simply drop those features from the model. Does this solve the ethical issue? Why or why not?
+
+> <span style="color:red;font-weight:bold">TODO</span>: *describe your reasoning here*
+This does not solve the ethical issue because without specfic finetuning of the data set it might end up categorizing those groups through indirect metrics to group those categor.
