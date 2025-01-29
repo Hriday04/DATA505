@@ -105,24 +105,24 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 
 <p><strong>Abstract:</strong></p>
-<p>This is a technical blog post of <strong>both</strong> an HTML file <em>and</em> <a href="src/wine_of_pnw_py.qmd">.qmd file</a> hosted on GitHub pages.</p>
+<p>This is a technical blog post of <strong>both</strong> an HTML file <em>and</em> <a href="https://github.com/Hriday04/DATA505/blob/main/wines_of_pnw.qmd">.qmd file</a> hosted on GitHub pages.</p>
 <section id="setup" class="level1">
 <h1>Setup</h1>
 <p><strong>Set Up Python:</strong></p>
-<div id="50b3e087" class="cell" data-execution_count="1">
+<div id="9e3e7790" class="cell" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> seaborn <span class="im">as</span> sns</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p><strong>Set Up R Compatability:</strong></p>
-<div id="7d417167" class="cell" data-execution_count="2">
+<div id="51413de7" class="cell" data-execution_count="2">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pyreadr</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> statsmodels.api <span class="im">as</span> sm</span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> statsmodels.formula.api <span class="im">as</span> smf</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p><strong>Step Up Dataframe:</strong></p>
-<div id="e40473e8" class="cell" data-execution_count="3">
+<div id="cb696411" class="cell" data-execution_count="3">
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">#url = 'https://cd-public.github.io/D505/dat/'</span></span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="co">#rds = 'wine.rds'</span></span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="co">#pyreadr.download_file(url + rds, rds)</span></span>
@@ -144,19 +144,21 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="linear-models" class="level2">
 <h2 class="anchored" data-anchor-id="linear-models">Linear Models</h2>
 <p>First run a linear regression model with log of price as the dependent variable and ‘points’ and ‘cherry’ as features (variables).</p>
-<div id="09456bdd" class="cell" data-execution_count="4">
+<div id="7f7b9294" class="cell" data-execution_count="4">
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>m1 <span class="op">=</span> smf.ols(<span class="st">'lprice ~ points + cherry'</span>, data<span class="op">=</span>wine).fit()</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(m1.summary())</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">m1_summary</span><span class="ch">\n</span><span class="st">"</span>,m1.summary())</span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>rmse <span class="op">=</span> np.sqrt(m1.mse_resid)</span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f'RMSE: </span><span class="sc">{</span>rmse<span class="sc">}</span><span class="ss">'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f'</span><span class="ch">\n</span><span class="ss">m1 RMSE: </span><span class="sc">{</span>rmse<span class="sc">}</span><span class="ss">'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>                            OLS Regression Results                            
+<pre><code>
+m1_summary
+                             OLS Regression Results                            
 ==============================================================================
 Dep. Variable:                 lprice   R-squared:                       0.305
 Model:                            OLS   Adj. R-squared:                  0.305
 Method:                 Least Squares   F-statistic:                     5845.
 Date:                Wed, 29 Jan 2025   Prob (F-statistic):               0.00
-Time:                        11:39:38   Log-Likelihood:                -17580.
+Time:                        13:26:19   Log-Likelihood:                -17580.
 No. Observations:               26584   AIC:                         3.517e+04
 Df Residuals:                   26581   BIC:                         3.519e+04
 Df Model:                           2                                         
@@ -178,7 +180,8 @@ Notes:
 [1] Standard Errors assume that the covariance matrix of the errors is correctly specified.
 [2] The condition number is large, 2.79e+03. This might indicate that there are
 strong multicollinearity or other numerical problems.
-RMSE: 0.4688029155134235</code></pre>
+
+m1 RMSE: 0.4688029155134235</code></pre>
 </div>
 </div>
 <p><strong>Explanation:</strong></p>
@@ -188,19 +191,21 @@ RMSE: 0.4688029155134235</code></pre>
 <li>The RMSE is 0.4688029155134235 which means on average, the model’s predictions deviate from the actual values by .4688029155134235 units ## Interaction Models</li>
 </ul>
 <p>Add an interaction between ‘points’ and ‘cherry’.</p>
-<div id="89c6ad15" class="cell" data-execution_count="5">
+<div id="c2f09c9b" class="cell" data-execution_count="5">
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>m2 <span class="op">=</span> smf.ols(<span class="st">'lprice ~ points * cherry'</span>, data<span class="op">=</span>wine).fit()</span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(m2.summary())</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">m2_summary</span><span class="ch">\n</span><span class="st">"</span>,m2.summary())</span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>m2_rmse <span class="op">=</span> np.sqrt(m2.mse_resid)</span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f'RMSE: </span><span class="sc">{</span>m2_rmse<span class="sc">}</span><span class="ss">'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f'</span><span class="ch">\n</span><span class="ss">m2 RMSE: </span><span class="sc">{</span>m2_rmse<span class="sc">}</span><span class="ch">\n</span><span class="ss">'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>                            OLS Regression Results                            
+<pre><code>
+m2_summary
+                             OLS Regression Results                            
 ==============================================================================
 Dep. Variable:                 lprice   R-squared:                       0.306
 Model:                            OLS   Adj. R-squared:                  0.306
 Method:                 Least Squares   F-statistic:                     3910.
 Date:                Wed, 29 Jan 2025   Prob (F-statistic):               0.00
-Time:                        11:39:38   Log-Likelihood:                -17566.
+Time:                        13:26:19   Log-Likelihood:                -17566.
 No. Observations:               26584   AIC:                         3.514e+04
 Df Residuals:                   26580   BIC:                         3.517e+04
 Df Model:                           3                                         
@@ -223,7 +228,9 @@ Notes:
 [1] Standard Errors assume that the covariance matrix of the errors is correctly specified.
 [2] The condition number is large, 7.15e+03. This might indicate that there are
 strong multicollinearity or other numerical problems.
-RMSE: 0.4685670767868244</code></pre>
+
+m2 RMSE: 0.4685670767868244
+</code></pre>
 </div>
 </div>
 <p><strong>Explanation:</strong></p>
@@ -239,7 +246,7 @@ RMSE: 0.4685670767868244</code></pre>
 <section id="applications" class="level2">
 <h2 class="anchored" data-anchor-id="applications">Applications</h2>
 <p>Determine which province (Oregon, California, or New York) does the ‘cherry’ feature in the data affect price most.</p>
-<div id="a824fcc1" class="cell" data-execution_count="6">
+<div id="f1f125d8" class="cell" data-execution_count="6">
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>ore <span class="op">=</span> wine[wine[<span class="st">"province"</span>] <span class="op">==</span> <span class="st">"Oregon"</span>]</span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>cal <span class="op">=</span> wine[wine[<span class="st">"province"</span>] <span class="op">==</span> <span class="st">"California"</span>]</span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>nyc <span class="op">=</span> wine[wine[<span class="st">"province"</span>] <span class="op">==</span> <span class="st">"New York"</span>]</span>
@@ -251,17 +258,19 @@ RMSE: 0.4685670767868244</code></pre>
 <span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>mcal <span class="op">=</span> sm.OLS(y_c, x_c).fit()</span>
 <span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>mnyc <span class="op">=</span> sm.OLS(y_n, x_n).fit()</span>
 <span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(more.summary())</span>
-<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(mcal.summary())</span>
-<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(mnyc.summary())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">oregon_summary</span><span class="ch">\n</span><span class="st">"</span>,more.summary())</span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">california_summary</span><span class="ch">\n</span><span class="st">"</span>,mcal.summary())</span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">nyc_summary</span><span class="ch">\n</span><span class="st">"</span>,mnyc.summary())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>                                 OLS Regression Results                                
+<pre><code>
+oregon_summary
+                                  OLS Regression Results                                
 =======================================================================================
 Dep. Variable:                 lprice   R-squared (uncentered):                   0.282
 Model:                            OLS   Adj. R-squared (uncentered):              0.281
 Method:                 Least Squares   F-statistic:                              2017.
 Date:                Wed, 29 Jan 2025   Prob (F-statistic):                        0.00
-Time:                        11:39:38   Log-Likelihood:                         -12928.
+Time:                        13:26:20   Log-Likelihood:                         -12928.
 No. Observations:                5147   AIC:                                  2.586e+04
 Df Residuals:                    5146   BIC:                                  2.586e+04
 Df Model:                           1                                                  
@@ -280,13 +289,15 @@ Kurtosis:                       2.365   Cond. No.                         1.00
 Notes:
 [1] R² is computed without centering (uncentered) since the model does not contain a constant.
 [2] Standard Errors assume that the covariance matrix of the errors is correctly specified.
-                                 OLS Regression Results                                
+
+california_summary
+                                  OLS Regression Results                                
 =======================================================================================
 Dep. Variable:                 lprice   R-squared (uncentered):                   0.254
 Model:                            OLS   Adj. R-squared (uncentered):              0.254
 Method:                 Least Squares   F-statistic:                              6509.
 Date:                Wed, 29 Jan 2025   Prob (F-statistic):                        0.00
-Time:                        11:39:38   Log-Likelihood:                         -48592.
+Time:                        13:26:20   Log-Likelihood:                         -48592.
 No. Observations:               19073   AIC:                                  9.719e+04
 Df Residuals:                   19072   BIC:                                  9.719e+04
 Df Model:                           1                                                  
@@ -305,13 +316,15 @@ Kurtosis:                       2.593   Cond. No.                         1.00
 Notes:
 [1] R² is computed without centering (uncentered) since the model does not contain a constant.
 [2] Standard Errors assume that the covariance matrix of the errors is correctly specified.
-                                 OLS Regression Results                                
+
+nyc_summary
+                                  OLS Regression Results                                
 =======================================================================================
 Dep. Variable:                 lprice   R-squared (uncentered):                   0.283
 Model:                            OLS   Adj. R-squared (uncentered):              0.282
 Method:                 Least Squares   F-statistic:                              931.5
 Date:                Wed, 29 Jan 2025   Prob (F-statistic):                   9.40e-173
-Time:                        11:39:38   Log-Likelihood:                         -5628.7
+Time:                        13:26:20   Log-Likelihood:                         -5628.7
 No. Observations:                2364   AIC:                                  1.126e+04
 Df Residuals:                    2363   BIC:                                  1.127e+04
 Df Model:                           1                                                  
