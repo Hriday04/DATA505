@@ -58,9 +58,9 @@ First run a linear regression model with log of price as the dependent variable 
 
 ```{python}
 m1 = smf.ols('lprice ~ points + cherry', data=wine).fit()
-print("m1_summary",m1.summary())
+print("\nm1_summary\n",m1.summary())
 rmse = np.sqrt(m1.mse_resid)
-print(f'm1 RMSE: {rmse}')
+print(f'\nm1 RMSE: {rmse}')
 ```
 
 **Explanation:**
@@ -74,9 +74,9 @@ Add an interaction between 'points' and 'cherry'.
 
 ```{python}
 m2 = smf.ols('lprice ~ points * cherry', data=wine).fit()
-print("m2_summary\n",m2.summary())
+print("\nm2_summary\n",m2.summary())
 m2_rmse = np.sqrt(m2.mse_resid)
-print(f'm2 RMSE: {m2_rmse}')
+print(f'\nm2 RMSE: {m2_rmse}\n')
 ```
 
 **Explanation:**
@@ -104,9 +104,9 @@ more = sm.OLS(y_o, x_o).fit()
 mcal = sm.OLS(y_c, x_c).fit()
 mnyc = sm.OLS(y_n, x_n).fit()
 
-print("oregon_summary\n",more.summary())
-print("california_summary\n",mcal.summary())
-print("nyc_summary\n",mnyc.summary())
+print("\noregon_summary\n",more.summary())
+print("\ncalifornia_summary\n",mcal.summary())
+print("\nnyc_summary\n",mnyc.summary())
 ```
 
 **Explanation:**
