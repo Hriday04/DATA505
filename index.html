@@ -6,6 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
+<meta name="author" content="Hriday Raj">
 
 <title>Wines of PNW</title>
 <style>
@@ -80,12 +81,19 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
 <h1 class="title">Wines of PNW</h1>
+<p class="subtitle lead">Applied Machine Learning</p>
 </div>
 
 
 
 <div class="quarto-title-meta">
 
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Hriday Raj </p>
+          </div>
+  </div>
     
   
     
@@ -96,428 +104,260 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<section id="prerequisite" class="level2">
-<h2 class="anchored" data-anchor-id="prerequisite">Prerequisite</h2>
-<ul>
-<li>I assume a Python/VS Code/Quarto workflow.
-<ul>
-<li>Review <a href="Python00.html">this document</a></li>
-</ul></li>
-<li>I assume familiarity with Machine Learning in R
-<ul>
-<li>Review <a href="Session01.html">these slides</a></li>
-</ul></li>
-</ul>
-</section>
-<section id="agenda" class="level2">
-<h2 class="anchored" data-anchor-id="agenda">Agenda</h2>
-<ol type="1">
-<li>Python Overview</li>
-<li>Review of Regression</li>
-<li>Classification</li>
-<li>Basic Feature Engineering</li>
-</ol>
-</section>
-<section id="quarto" class="level2">
-<h2 class="anchored" data-anchor-id="quarto">Quarto</h2>
-<ul>
-<li>I switch from a R backend to a Python backend.</li>
-<li>I add the following below my title in my .qmd header:
-<ul>
-<li><code>jupyter: python3</code></li>
-</ul></li>
-</ul>
-<div class="sourceCode" id="cb1"><pre class="sourceCode yml code-with-copy"><code class="sourceCode yaml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">title</span><span class="kw">:</span><span class="at"> </span><span class="st">"Machine Learning in Python"</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">subtitle</span><span class="kw">:</span><span class="at"> </span><span class="st">"Applied Machine Learning"</span></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">author</span><span class="kw">:</span><span class="at"> </span><span class="st">"Hriday Raj"</span></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="at">  </span></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">jupyter</span><span class="kw">:</span><span class="at"> python3</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</section>
-<section id="pip" class="level2">
-<h2 class="anchored" data-anchor-id="pip">Pip</h2>
-<ul>
-<li>In Python, we can typically install packages via <code>pip</code></li>
-<li>It is more typical to use <code>pip</code> at commandline.</li>
-</ul>
-<div class="sourceCode" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">-m</span> pip install sampleproject</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<ul>
-<li>Here is a ‘clean’ way to do so from within the Python</li>
-</ul>
-<div id="61b5a6f2" class="cell" data-execution_count="1">
-<details class="code-fold">
-<summary>Code</summary>
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> subprocess  <span class="co"># A base package we need to install other packages</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> sys         <span class="co"># A base package we need to install other packages</span></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>install <span class="op">=</span> <span class="kw">lambda</span> package : subprocess.check_call([sys.executable, </span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>                                                  <span class="st">'-m'</span>, </span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>                                                  <span class="st">'pip'</span>, </span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>                                                  <span class="st">'install'</span>, </span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>                                                  package])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
-</div>
-</section>
-<section id="packages" class="level2">
-<h2 class="anchored" data-anchor-id="packages">Packages</h2>
-<ul>
-<li>I’ll build a list of packages then install them via a loop.
-<ul>
-<li>Some (numpy, matplotlib) required for Quarto.</li>
-</ul></li>
-</ul>
-<div id="091631b9" class="cell" data-execution_count="2">
-<details class="code-fold">
-<summary>Code</summary>
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>python_data_stack <span class="op">=</span> [<span class="st">"numpy"</span>, <span class="st">"pandas"</span>, <span class="st">"matplotlib"</span>, <span class="st">"seaborn"</span>]</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>r_data_stack <span class="op">=</span> [<span class="st">'pyreadr'</span>, <span class="st">'statsmodels'</span>]</span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>packages <span class="op">=</span> python_data_stack <span class="op">+</span> r_data_stack <span class="op">+</span> [<span class="st">"scikit-learn"</span>]</span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>_ <span class="op">=</span> [install(package) <span class="cf">for</span> package <span class="kw">in</span> packages]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
-<div class="cell-output cell-output-stdout">
-<pre><code>Requirement already satisfied: numpy in /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages (2.2.1)</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>
-[notice] A new release of pip is available: 24.3.1 -&gt; 25.0
-[notice] To update, run: python3 -m pip install --upgrade pip</code></pre>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>Requirement already satisfied: pandas in /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages (2.2.3)
-Requirement already satisfied: numpy&gt;=1.26.0 in /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages (from pandas) (2.2.1)
-Requirement already satisfied: python-dateutil&gt;=2.8.2 in /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages (from pandas) (2.9.0.post0)
-Requirement already satisfied: pytz&gt;=2020.1 in /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages (from pandas) (2024.2)
-Requirement already satisfied: tzdata&gt;=2022.7 in /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages (from pandas) (2024.2)
-Requirement already satisfied: six&gt;=1.5 in /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages (from python-dateutil&gt;=2.8.2-&gt;pandas) (1.17.0)</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>
-[notice] A new release of pip is available: 24.3.1 -&gt; 25.0
-[notice] To update, run: python3 -m pip install --upgrade pip</code></pre>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>Requirement already satisfied: matplotlib in /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages (3.10.0)
-Requirement already satisfied: contourpy&gt;=1.0.1 in /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages (from matplotlib) (1.3.1)
-Requirement already satisfied: cycler&gt;=0.10 in /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages (from matplotlib) (0.12.1)
-Requirement already satisfied: fonttools&gt;=4.22.0 in /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages (from matplotlib) (4.55.3)
-Requirement already satisfied: kiwisolver&gt;=1.3.1 in /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages (from matplotlib) (1.4.8)
-Requirement already satisfied: numpy&gt;=1.23 in /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages (from matplotlib) (2.2.1)
-Requirement already satisfied: packaging&gt;=20.0 in /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages (from matplotlib) (24.2)
-Requirement already satisfied: pillow&gt;=8 in /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages (from matplotlib) (11.1.0)
-Requirement already satisfied: pyparsing&gt;=2.3.1 in /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages (from matplotlib) (3.2.1)
-Requirement already satisfied: python-dateutil&gt;=2.7 in /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages (from matplotlib) (2.9.0.post0)
-Requirement already satisfied: six&gt;=1.5 in /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages (from python-dateutil&gt;=2.7-&gt;matplotlib) (1.17.0)</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>
-[notice] A new release of pip is available: 24.3.1 -&gt; 25.0
-[notice] To update, run: python3 -m pip install --upgrade pip</code></pre>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>Requirement already satisfied: seaborn in /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages (0.13.2)
-Requirement already satisfied: numpy!=1.24.0,&gt;=1.20 in /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages (from seaborn) (2.2.1)
-Requirement already satisfied: pandas&gt;=1.2 in /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages (from seaborn) (2.2.3)
-Requirement already satisfied: matplotlib!=3.6.1,&gt;=3.4 in /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages (from seaborn) (3.10.0)
-Requirement already satisfied: contourpy&gt;=1.0.1 in /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages (from matplotlib!=3.6.1,&gt;=3.4-&gt;seaborn) (1.3.1)
-Requirement already satisfied: cycler&gt;=0.10 in /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages (from matplotlib!=3.6.1,&gt;=3.4-&gt;seaborn) (0.12.1)
-Requirement already satisfied: fonttools&gt;=4.22.0 in /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages (from matplotlib!=3.6.1,&gt;=3.4-&gt;seaborn) (4.55.3)
-Requirement already satisfied: kiwisolver&gt;=1.3.1 in /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages (from matplotlib!=3.6.1,&gt;=3.4-&gt;seaborn) (1.4.8)
-Requirement already satisfied: packaging&gt;=20.0 in /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages (from matplotlib!=3.6.1,&gt;=3.4-&gt;seaborn) (24.2)
-Requirement already satisfied: pillow&gt;=8 in /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages (from matplotlib!=3.6.1,&gt;=3.4-&gt;seaborn) (11.1.0)
-Requirement already satisfied: pyparsing&gt;=2.3.1 in /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages (from matplotlib!=3.6.1,&gt;=3.4-&gt;seaborn) (3.2.1)
-Requirement already satisfied: python-dateutil&gt;=2.7 in /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages (from matplotlib!=3.6.1,&gt;=3.4-&gt;seaborn) (2.9.0.post0)
-Requirement already satisfied: pytz&gt;=2020.1 in /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages (from pandas&gt;=1.2-&gt;seaborn) (2024.2)
-Requirement already satisfied: tzdata&gt;=2022.7 in /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages (from pandas&gt;=1.2-&gt;seaborn) (2024.2)
-Requirement already satisfied: six&gt;=1.5 in /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages (from python-dateutil&gt;=2.7-&gt;matplotlib!=3.6.1,&gt;=3.4-&gt;seaborn) (1.17.0)</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>
-[notice] A new release of pip is available: 24.3.1 -&gt; 25.0
-[notice] To update, run: python3 -m pip install --upgrade pip</code></pre>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>Requirement already satisfied: pyreadr in /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages (0.5.2)
-Requirement already satisfied: pandas&gt;=1.2.0 in /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages (from pyreadr) (2.2.3)
-Requirement already satisfied: numpy&gt;=1.26.0 in /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages (from pandas&gt;=1.2.0-&gt;pyreadr) (2.2.1)
-Requirement already satisfied: python-dateutil&gt;=2.8.2 in /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages (from pandas&gt;=1.2.0-&gt;pyreadr) (2.9.0.post0)
-Requirement already satisfied: pytz&gt;=2020.1 in /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages (from pandas&gt;=1.2.0-&gt;pyreadr) (2024.2)
-Requirement already satisfied: tzdata&gt;=2022.7 in /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages (from pandas&gt;=1.2.0-&gt;pyreadr) (2024.2)
-Requirement already satisfied: six&gt;=1.5 in /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages (from python-dateutil&gt;=2.8.2-&gt;pandas&gt;=1.2.0-&gt;pyreadr) (1.17.0)</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>
-[notice] A new release of pip is available: 24.3.1 -&gt; 25.0
-[notice] To update, run: python3 -m pip install --upgrade pip</code></pre>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>Requirement already satisfied: statsmodels in /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages (0.14.4)
-Requirement already satisfied: numpy&lt;3,&gt;=1.22.3 in /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages (from statsmodels) (2.2.1)
-Requirement already satisfied: scipy!=1.9.2,&gt;=1.8 in /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages (from statsmodels) (1.15.1)
-Requirement already satisfied: pandas!=2.1.0,&gt;=1.4 in /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages (from statsmodels) (2.2.3)
-Requirement already satisfied: patsy&gt;=0.5.6 in /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages (from statsmodels) (1.0.1)
-Requirement already satisfied: packaging&gt;=21.3 in /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages (from statsmodels) (24.2)
-Requirement already satisfied: python-dateutil&gt;=2.8.2 in /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages (from pandas!=2.1.0,&gt;=1.4-&gt;statsmodels) (2.9.0.post0)
-Requirement already satisfied: pytz&gt;=2020.1 in /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages (from pandas!=2.1.0,&gt;=1.4-&gt;statsmodels) (2024.2)
-Requirement already satisfied: tzdata&gt;=2022.7 in /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages (from pandas!=2.1.0,&gt;=1.4-&gt;statsmodels) (2024.2)
-Requirement already satisfied: six&gt;=1.5 in /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages (from python-dateutil&gt;=2.8.2-&gt;pandas!=2.1.0,&gt;=1.4-&gt;statsmodels) (1.17.0)</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>
-[notice] A new release of pip is available: 24.3.1 -&gt; 25.0
-[notice] To update, run: python3 -m pip install --upgrade pip</code></pre>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>Requirement already satisfied: scikit-learn in /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages (1.6.1)
-Requirement already satisfied: numpy&gt;=1.19.5 in /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages (from scikit-learn) (2.2.1)
-Requirement already satisfied: scipy&gt;=1.6.0 in /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages (from scikit-learn) (1.15.1)
-Requirement already satisfied: joblib&gt;=1.2.0 in /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages (from scikit-learn) (1.4.2)
-Requirement already satisfied: threadpoolctl&gt;=3.1.0 in /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages (from scikit-learn) (3.5.0)</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>
-[notice] A new release of pip is available: 24.3.1 -&gt; 25.0
-[notice] To update, run: python3 -m pip install --upgrade pip</code></pre>
-</div>
-</div>
-<ul>
-<li>I use <code>_ =</code> to discard the result of the process.
-<ul>
-<li>This ignores errors - remove to debug.</li>
-</ul></li>
-</ul>
-</section>
-<section id="import" class="level2">
-<h2 class="anchored" data-anchor-id="import">Import</h2>
-<ul>
-<li>Python packages use <code>import</code> rather than <code>library()</code></li>
-<li>Python base data stack</li>
-</ul>
-<div id="23a8d7fc" class="cell" data-execution_count="3">
-<details class="code-fold">
-<summary>Code</summary>
-<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
-<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
-<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
-<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> seaborn <span class="im">as</span> sns</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
-</div>
-<ul>
-<li>R &amp; statistics</li>
-</ul>
-<div id="eb0f56e5" class="cell" data-execution_count="4">
-<details class="code-fold">
-<summary>Code</summary>
-<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pyreadr</span>
-<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> statsmodels.api <span class="im">as</span> sm</span>
-<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> statsmodels.formula.api <span class="im">as</span> smf</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
-</div>
-</section>
-<section id="ml-library" class="level2">
-<h2 class="anchored" data-anchor-id="ml-library">ML Library</h2>
-<ul>
-<li><p>There are 3.5 Python ML libraries that matter</p>
-<ul>
-<li>Scikit-learn, mainline ML</li>
-<li>Torch, deep learning</li>
-<li>Tensorflow, deep learning</li>
-<li>PySpark MLlib, MLOps</li>
-</ul>
-<div id="6db5875b" class="cell" data-execution_count="5">
-<details class="code-fold">
-<summary>Code</summary>
-<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Common to include parts of, not all of, sklearn</span></span>
-<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.linear_model <span class="im">import</span> LinearRegression</span>
-<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> train_test_split</span>
-<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> confusion_matrix, ConfusionMatrixDisplay</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
-</div>
-<p><strong>Abstract:</strong></p></li>
-</ul>
-<p>This is a technical blog post of <strong>both</strong> an HTML file <em>and</em> <a href="src/wine_of_pnw.qmd">.qmd file</a> hosted on GitHub pages.</p>
-</section>
+<p><strong>Abstract:</strong></p>
+<p>This is a technical blog post of <strong>both</strong> an HTML file <em>and</em> <a href="src/wine_of_pnw_py.qmd">.qmd file</a> hosted on GitHub pages.</p>
 <section id="setup" class="level1">
 <h1>Setup</h1>
-<ol type="1">
-<li>Change the author of this RMD file to be yourself and delete this line.</li>
-<li>Modify if necessary the below code so that you can successfully load <code>wine.rds</code> then delete this line.</li>
-<li>In the space provided after the R chunk, explain what thecode is doing (line by line) then delete this line.</li>
-<li>Get your <a href="https://docs.github.com/en/pages/quickstart">GitHub Pages</a> ready.</li>
-</ol>
-<p><strong>Step Up Code:</strong></p>
-<div id="4dca0166" class="cell" data-execution_count="6">
-<details class="code-fold">
-<summary>Code</summary>
-<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>rds <span class="op">=</span> <span class="st">'wine.rds'</span></span>
-<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="co">#pyreadr.download_file(url + rds, rds) </span></span>
-<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>wine <span class="op">=</span> pyreadr.read_r(rds)[<span class="va">None</span>]      </span>
-<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a><span class="bu">str</span>(wine.info()) <span class="co"># string for slide formatting</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
-<div class="cell-output cell-output-stdout">
-<pre><code>&lt;class 'pandas.core.frame.DataFrame'&gt;
-RangeIndex: 89556 entries, 0 to 89555
-Data columns (total 15 columns):
- #   Column                 Non-Null Count  Dtype  
----  ------                 --------------  -----  
- 0   id                     89556 non-null  float64
- 1   country                89503 non-null  object 
- 2   description            89556 non-null  object 
- 3   designation            64356 non-null  object 
- 4   points                 89556 non-null  float64
- 5   price                  89556 non-null  float64
- 6   province               89503 non-null  object 
- 7   region_1               71712 non-null  object 
- 8   region_2               33081 non-null  object 
- 9   taster_name            89556 non-null  object 
- 10  taster_twitter_handle  84953 non-null  object 
- 11  title                  89556 non-null  object 
- 12  variety                89556 non-null  object 
- 13  winery                 89556 non-null  object 
- 14  year                   89556 non-null  float64
-dtypes: float64(4), object(11)
-memory usage: 10.2+ MB</code></pre>
+<p><strong>Set Up Python:</strong></p>
+<div id="50b3e087" class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> seaborn <span class="im">as</span> sns</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div class="cell-output cell-output-display" data-execution_count="6">
-<pre><code>'None'</code></pre>
+<p><strong>Set Up R Compatability:</strong></p>
+<div id="7d417167" class="cell" data-execution_count="2">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pyreadr</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> statsmodels.api <span class="im">as</span> sm</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> statsmodels.formula.api <span class="im">as</span> smf</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-</div>
-<div id="625a0112" class="cell" data-execution_count="7">
-<details class="code-fold">
-<summary>Code</summary>
-<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>wine <span class="op">=</span> wine[(wine[<span class="st">"province"</span>]<span class="op">==</span><span class="st">"Oregon"</span>) <span class="op">|</span> (wine[<span class="st">"province"</span>]<span class="op">==</span><span class="st">"California"</span> )<span class="op">|</span> (wine[<span class="st">"province"</span>]<span class="op">==</span><span class="st">"New York"</span>)]</span>
-<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>wine[<span class="st">'cherry'</span>] <span class="op">=</span> wine[<span class="st">'description'</span>].<span class="bu">str</span>.contains(<span class="vs">r'[Cc]herry'</span>, na<span class="op">=</span><span class="va">False</span>).astype(<span class="bu">int</span>)</span>
-<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Add 'lprice' column</span></span>
-<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>wine[<span class="st">'lprice'</span>] <span class="op">=</span> np.log(wine[<span class="st">'price'</span>])</span>
-<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>wine <span class="op">=</span> wine[[<span class="st">'lprice'</span>, <span class="st">'points'</span>, <span class="st">'cherry'</span>, <span class="st">'province'</span>]]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
+<p><strong>Step Up Dataframe:</strong></p>
+<div id="e40473e8" class="cell" data-execution_count="3">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">#url = 'https://cd-public.github.io/D505/dat/'</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="co">#rds = 'wine.rds'</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="co">#pyreadr.download_file(url + rds, rds)</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>path<span class="op">=</span><span class="st">"/Users/hridayraj/Desktop/sp25/ml/wine.rds"</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>wine <span class="op">=</span> pyreadr.read_r(path)[<span class="va">None</span>]      </span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>wine <span class="op">=</span> wine[wine[<span class="st">'province'</span>].isin([<span class="st">'Oregon'</span>, <span class="st">'California'</span>, <span class="st">'New York'</span>])]</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>wine[<span class="st">'cherry'</span>] <span class="op">=</span> wine[<span class="st">'description'</span>].<span class="bu">apply</span>(<span class="kw">lambda</span> x: <span class="st">'herry'</span> <span class="kw">in</span> x)</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>wine[<span class="st">'lprice'</span>] <span class="op">=</span> wine[<span class="st">'price'</span>].<span class="bu">apply</span>(np.log)</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>wine <span class="op">=</span> wine[[<span class="st">'lprice'</span>, <span class="st">'points'</span>, <span class="st">'cherry'</span>, <span class="st">'province'</span>]]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p><strong>Explanataion:</strong></p>
-<blockquote class="blockquote">
-<p><span style="color:red;font-weight:bold">TODO</span>: <em>write your line-by-line explanation of the code here</em></p>
-</blockquote>
 <p>This code first pulls the data from a file called wine.rds then filters it by the column province based on or conditions for values.</p>
-<p>The code then creates a column ‘cherry’ as a boolean for if the descripriton of the observation contains the word cherry,. It then creates a column ‘lprice’ which is the logagrtim of the price of the observation</p>
-<p>It finally subsets the data frame into 4 columns # Multiple Regression</p>
+<p>The code then creates a column ‘cherry’ as a boolean for if the descripriton of the observation contains the word cherry,.</p>
+<p>It then creates a column ‘lprice’ which is the log of the price.</p>
+<p>Finally it subsets the data into only having 4 features.</p>
+</section>
+<section id="multiple-regression" class="level1">
+<h1>Multiple Regression</h1>
 <section id="linear-models" class="level2">
 <h2 class="anchored" data-anchor-id="linear-models">Linear Models</h2>
 <p>First run a linear regression model with log of price as the dependent variable and ‘points’ and ‘cherry’ as features (variables).</p>
-<div id="bb0cc418" class="cell" data-execution_count="8">
-<details class="code-fold">
-<summary>Code</summary>
-<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="co"># </span><span class="al">TODO</span><span class="co">: hint: m1 &lt;- lm(lprice ~ points + cherry)</span></span>
-<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> wine[[<span class="st">"points"</span>, <span class="st">"cherry"</span>]]</span>
-<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> wine[<span class="st">"lprice"</span>]</span>
-<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>m1 <span class="op">=</span> sm.OLS(y,x).fit()</span>
-<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>m1.summary()</span>
-<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>rmse <span class="op">=</span> np.sqrt(m1.mse_resid)</span>
-<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f'RMSE: </span><span class="sc">{</span>rmse<span class="sc">}</span><span class="ss">'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
+<div id="09456bdd" class="cell" data-execution_count="4">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>m1 <span class="op">=</span> smf.ols(<span class="st">'lprice ~ points + cherry'</span>, data<span class="op">=</span>wine).fit()</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(m1.summary())</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>rmse <span class="op">=</span> np.sqrt(m1.mse_resid)</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f'RMSE: </span><span class="sc">{</span>rmse<span class="sc">}</span><span class="ss">'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>RMSE: 0.5054964478011196</code></pre>
+<pre><code>                            OLS Regression Results                            
+==============================================================================
+Dep. Variable:                 lprice   R-squared:                       0.305
+Model:                            OLS   Adj. R-squared:                  0.305
+Method:                 Least Squares   F-statistic:                     5845.
+Date:                Wed, 29 Jan 2025   Prob (F-statistic):               0.00
+Time:                        11:39:38   Log-Likelihood:                -17580.
+No. Observations:               26584   AIC:                         3.517e+04
+Df Residuals:                   26581   BIC:                         3.519e+04
+Df Model:                           2                                         
+Covariance Type:            nonrobust                                         
+==================================================================================
+                     coef    std err          t      P&gt;|t|      [0.025      0.975]
+----------------------------------------------------------------------------------
+Intercept         -5.9163      0.090    -65.781      0.000      -6.093      -5.740
+cherry[T.True]     0.1186      0.007     17.665      0.000       0.105       0.132
+points             0.1051      0.001    104.035      0.000       0.103       0.107
+==============================================================================
+Omnibus:                      850.707   Durbin-Watson:                   1.866
+Prob(Omnibus):                  0.000   Jarque-Bera (JB):             1029.358
+Skew:                           0.391   Prob(JB):                    3.00e-224
+Kurtosis:                       3.563   Cond. No.                     2.79e+03
+==============================================================================
+
+Notes:
+[1] Standard Errors assume that the covariance matrix of the errors is correctly specified.
+[2] The condition number is large, 2.79e+03. This might indicate that there are
+strong multicollinearity or other numerical problems.
+RMSE: 0.4688029155134235</code></pre>
 </div>
 </div>
-<p><strong>Explanataion:</strong></p>
-<blockquote class="blockquote">
-<p><span style="color:red;font-weight:bold">TODO</span>: <em>write your line-by-line explanation of the code here</em> x is the independent variables. y is the depedent variable. The third line is stats model linear regression package and we are fitting data. The fourth line is the summary of the model. Taking square riit of the mean residuals.</p>
-</blockquote>
-<blockquote class="blockquote">
-<p><span style="color:red;font-weight:bold">TODO</span>: <em>report and explain the RMSE</em> The RMSE is .5054 which is that each actual dependent value is on average .5054 away from the predicted value. ## Interaction Models</p>
-</blockquote>
+<p><strong>Explanation:</strong></p>
+<ul>
+<li><code>sm.OLS</code> creates and fits a linear regression model.</li>
+<li><code>m1.summary()</code> provides the regression results.</li>
+<li>The RMSE is 0.4688029155134235 which means on average, the model’s predictions deviate from the actual values by .4688029155134235 units ## Interaction Models</li>
+</ul>
 <p>Add an interaction between ‘points’ and ‘cherry’.</p>
-<div id="f755332f" class="cell" data-execution_count="9">
-<details class="code-fold">
-<summary>Code</summary>
-<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> wine[<span class="st">"points"</span>]<span class="op">*</span>wine[<span class="st">"cherry"</span>]</span>
-<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> wine[<span class="st">"lprice"</span>]</span>
-<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>m2 <span class="op">=</span> sm.OLS(y,x).fit()</span>
-<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>m2.summary()</span>
-<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a>m2_rmse <span class="op">=</span> np.sqrt(m2.mse_resid)</span>
-<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f'RMSE: </span><span class="sc">{</span>m2_rmse<span class="sc">}</span><span class="ss">'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
+<div id="89c6ad15" class="cell" data-execution_count="5">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>m2 <span class="op">=</span> smf.ols(<span class="st">'lprice ~ points * cherry'</span>, data<span class="op">=</span>wine).fit()</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(m2.summary())</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>m2_rmse <span class="op">=</span> np.sqrt(m2.mse_resid)</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f'RMSE: </span><span class="sc">{</span>m2_rmse<span class="sc">}</span><span class="ss">'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>RMSE: 3.0302080998740526</code></pre>
+<pre><code>                            OLS Regression Results                            
+==============================================================================
+Dep. Variable:                 lprice   R-squared:                       0.306
+Model:                            OLS   Adj. R-squared:                  0.306
+Method:                 Least Squares   F-statistic:                     3910.
+Date:                Wed, 29 Jan 2025   Prob (F-statistic):               0.00
+Time:                        11:39:38   Log-Likelihood:                -17566.
+No. Observations:               26584   AIC:                         3.514e+04
+Df Residuals:                   26580   BIC:                         3.517e+04
+Df Model:                           3                                         
+Covariance Type:            nonrobust                                         
+=========================================================================================
+                            coef    std err          t      P&gt;|t|      [0.025      0.975]
+-----------------------------------------------------------------------------------------
+Intercept                -5.6593      0.102    -55.336      0.000      -5.860      -5.459
+cherry[T.True]           -1.0176      0.216     -4.717      0.000      -1.440      -0.595
+points                    0.1022      0.001     88.963      0.000       0.100       0.104
+points:cherry[T.True]     0.0127      0.002      5.269      0.000       0.008       0.017
+==============================================================================
+Omnibus:                      857.888   Durbin-Watson:                   1.868
+Prob(Omnibus):                  0.000   Jarque-Bera (JB):             1036.158
+Skew:                           0.394   Prob(JB):                    1.00e-225
+Kurtosis:                       3.560   Cond. No.                     7.15e+03
+==============================================================================
+
+Notes:
+[1] Standard Errors assume that the covariance matrix of the errors is correctly specified.
+[2] The condition number is large, 7.15e+03. This might indicate that there are
+strong multicollinearity or other numerical problems.
+RMSE: 0.4685670767868244</code></pre>
 </div>
 </div>
-<blockquote class="blockquote">
-<p><span style="color:red;font-weight:bold">TODO</span>: <em>write your line-by-line explanation of the code here</em> Multply dependent variables by each other. same as previous code but with new model <span style="color:red;font-weight:bold">TODO</span>: <em>report and explain the RMSE</em> The RMSE is 3.0302 and is much higher than the previous model which means the model has a lot more noise when interacting vs just using them. ### The Interaction Variable</p>
-</blockquote>
-<blockquote class="blockquote">
-<p><span style="color:red;font-weight:bold">TODO</span>: <em>interpret the coefficient on the interaction variable.</em> <br><a href="https://youtube.com/clip/UgkxY7ohjoimIef6zpPLjgQHqJcJHeZptuVm?feature=shared">Explain as you would to a non-technical manager.</a> The coefficient is how much adding one of the cherry/points value impacts the price. ## Applications</p>
-</blockquote>
-<p>Determine which province (Oregon, California, or New York), does the ‘cherry’ feature in the data affect price most? (wine[“province”]==“Oregon”)</p>
-<div id="6b8d6c8a" class="cell" data-execution_count="10">
-<details class="code-fold">
-<summary>Code</summary>
-<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="co"># </span><span class="al">TODO</span><span class="co">: </span></span>
-<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>ore <span class="op">=</span> wine[(wine[<span class="st">"province"</span>]<span class="op">==</span><span class="st">"Oregon"</span>)]</span>
-<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>cal <span class="op">=</span> wine[(wine[<span class="st">"province"</span>]<span class="op">==</span><span class="st">"California"</span>)]</span>
-<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a>nyc <span class="op">=</span> wine[(wine[<span class="st">"province"</span>]<span class="op">==</span><span class="st">"New York"</span>)]</span>
-<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a>x_o <span class="op">=</span> ore[<span class="st">"cherry"</span>]</span>
-<span id="cb30-7"><a href="#cb30-7" aria-hidden="true" tabindex="-1"></a>x_c <span class="op">=</span> cal[<span class="st">"cherry"</span>]</span>
-<span id="cb30-8"><a href="#cb30-8" aria-hidden="true" tabindex="-1"></a>x_n <span class="op">=</span> nyc[<span class="st">"cherry"</span>]</span>
-<span id="cb30-9"><a href="#cb30-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb30-10"><a href="#cb30-10" aria-hidden="true" tabindex="-1"></a>y_o <span class="op">=</span> ore[<span class="st">"lprice"</span>]</span>
-<span id="cb30-11"><a href="#cb30-11" aria-hidden="true" tabindex="-1"></a>y_c <span class="op">=</span> cal[<span class="st">"lprice"</span>]</span>
-<span id="cb30-12"><a href="#cb30-12" aria-hidden="true" tabindex="-1"></a>y_n <span class="op">=</span> nyc[<span class="st">"lprice"</span>]</span>
-<span id="cb30-13"><a href="#cb30-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb30-14"><a href="#cb30-14" aria-hidden="true" tabindex="-1"></a>more <span class="op">=</span> sm.OLS(y_o,x_o).fit()</span>
-<span id="cb30-15"><a href="#cb30-15" aria-hidden="true" tabindex="-1"></a>mcal <span class="op">=</span> sm.OLS(y_c,x_c).fit()</span>
-<span id="cb30-16"><a href="#cb30-16" aria-hidden="true" tabindex="-1"></a>mnyc <span class="op">=</span> sm.OLS(y_n,x_n).fit()</span>
-<span id="cb30-17"><a href="#cb30-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb30-18"><a href="#cb30-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb30-19"><a href="#cb30-19" aria-hidden="true" tabindex="-1"></a>more.summary()</span>
-<span id="cb30-20"><a href="#cb30-20" aria-hidden="true" tabindex="-1"></a>more_rmse <span class="op">=</span> np.sqrt(more.mse_resid)</span>
-<span id="cb30-21"><a href="#cb30-21" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f'RMSE: </span><span class="sc">{</span>m2_rmse<span class="sc">}</span><span class="ss">'</span>)</span>
-<span id="cb30-22"><a href="#cb30-22" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb30-23"><a href="#cb30-23" aria-hidden="true" tabindex="-1"></a>mcal.summary()</span>
-<span id="cb30-24"><a href="#cb30-24" aria-hidden="true" tabindex="-1"></a>mcal_rmse <span class="op">=</span> np.sqrt(mcal.mse_resid)</span>
-<span id="cb30-25"><a href="#cb30-25" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f'RMSE: </span><span class="sc">{</span>mcal_rmse<span class="sc">}</span><span class="ss">'</span>)</span>
-<span id="cb30-26"><a href="#cb30-26" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb30-27"><a href="#cb30-27" aria-hidden="true" tabindex="-1"></a>mnyc.summary()</span>
-<span id="cb30-28"><a href="#cb30-28" aria-hidden="true" tabindex="-1"></a>mnyc_rmse <span class="op">=</span> np.sqrt(mnyc.mse_resid)</span>
-<span id="cb30-29"><a href="#cb30-29" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f'RMSE: </span><span class="sc">{</span>mnyc_rmse<span class="sc">}</span><span class="ss">'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
-<div class="cell-output cell-output-stdout">
-<pre><code>RMSE: 3.0302080998740526
-RMSE: 3.092012785503226
-RMSE: 2.6176141253888012</code></pre>
-</div>
-</div>
-<blockquote class="blockquote">
-<p><span style="color:red;font-weight:bold">TODO</span>: <em>write your line-by-line explanation of the code here, and explain your answer.</em></p>
-</blockquote>
-<blockquote class="blockquote">
-<p>For Oregon: 3.7079, California: 3.6684, New York 3.1930. Cherries within the description affects the price for Oregon wines the most.</p>
-<p>First I create 3 data frames for each subset of data, then I independently perform ordered linear regression on each dataset. # Scenarios</p>
-</blockquote>
+<p><strong>Explanation:</strong></p>
+<ul>
+<li>Multiplies the <code>points</code> and <code>cherry</code> variables to create an interaction term.</li>
+<li>Repeats the same steps as before to fit the model and calculate RMSE.</li>
+</ul>
+<section id="the-interaction-variable" class="level3">
+<h3 class="anchored" data-anchor-id="the-interaction-variable">The Interaction Variable</h3>
+<p>The coefficient of the interaction term indicates the combined effect of <code>points</code> and <code>cherry</code> on the log of price. A positive coefficient suggests that the interaction increases <code>lprice</code>, while a negative value suggests the opposite.</p>
 </section>
-<section id="on-accuracy" class="level2">
-<h2 class="anchored" data-anchor-id="on-accuracy">On Accuracy</h2>
+</section>
+<section id="applications" class="level2">
+<h2 class="anchored" data-anchor-id="applications">Applications</h2>
+<p>Determine which province (Oregon, California, or New York) does the ‘cherry’ feature in the data affect price most.</p>
+<div id="a824fcc1" class="cell" data-execution_count="6">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>ore <span class="op">=</span> wine[wine[<span class="st">"province"</span>] <span class="op">==</span> <span class="st">"Oregon"</span>]</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>cal <span class="op">=</span> wine[wine[<span class="st">"province"</span>] <span class="op">==</span> <span class="st">"California"</span>]</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>nyc <span class="op">=</span> wine[wine[<span class="st">"province"</span>] <span class="op">==</span> <span class="st">"New York"</span>]</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>x_o, x_c, x_n <span class="op">=</span> ore[<span class="st">"cherry"</span>], cal[<span class="st">"cherry"</span>], nyc[<span class="st">"cherry"</span>]</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>y_o, y_c, y_n <span class="op">=</span> ore[<span class="st">"lprice"</span>], cal[<span class="st">"lprice"</span>], nyc[<span class="st">"lprice"</span>]</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>more <span class="op">=</span> sm.OLS(y_o, x_o).fit()</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>mcal <span class="op">=</span> sm.OLS(y_c, x_c).fit()</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>mnyc <span class="op">=</span> sm.OLS(y_n, x_n).fit()</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(more.summary())</span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(mcal.summary())</span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(mnyc.summary())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                                 OLS Regression Results                                
+=======================================================================================
+Dep. Variable:                 lprice   R-squared (uncentered):                   0.282
+Model:                            OLS   Adj. R-squared (uncentered):              0.281
+Method:                 Least Squares   F-statistic:                              2017.
+Date:                Wed, 29 Jan 2025   Prob (F-statistic):                        0.00
+Time:                        11:39:38   Log-Likelihood:                         -12928.
+No. Observations:                5147   AIC:                                  2.586e+04
+Df Residuals:                    5146   BIC:                                  2.586e+04
+Df Model:                           1                                                  
+Covariance Type:            nonrobust                                                  
+==============================================================================
+                 coef    std err          t      P&gt;|t|      [0.025      0.975]
+------------------------------------------------------------------------------
+cherry         3.7067      0.083     44.909      0.000       3.545       3.869
+==============================================================================
+Omnibus:                      744.660   Durbin-Watson:                   0.552
+Prob(Omnibus):                  0.000   Jarque-Bera (JB):              829.165
+Skew:                          -0.930   Prob(JB):                    8.89e-181
+Kurtosis:                       2.365   Cond. No.                         1.00
+==============================================================================
+
+Notes:
+[1] R² is computed without centering (uncentered) since the model does not contain a constant.
+[2] Standard Errors assume that the covariance matrix of the errors is correctly specified.
+                                 OLS Regression Results                                
+=======================================================================================
+Dep. Variable:                 lprice   R-squared (uncentered):                   0.254
+Model:                            OLS   Adj. R-squared (uncentered):              0.254
+Method:                 Least Squares   F-statistic:                              6509.
+Date:                Wed, 29 Jan 2025   Prob (F-statistic):                        0.00
+Time:                        11:39:38   Log-Likelihood:                         -48592.
+No. Observations:               19073   AIC:                                  9.719e+04
+Df Residuals:                   19072   BIC:                                  9.719e+04
+Df Model:                           1                                                  
+Covariance Type:            nonrobust                                                  
+==============================================================================
+                 coef    std err          t      P&gt;|t|      [0.025      0.975]
+------------------------------------------------------------------------------
+cherry         3.6683      0.045     80.679      0.000       3.579       3.757
+==============================================================================
+Omnibus:                     2367.003   Durbin-Watson:                   0.527
+Prob(Omnibus):                  0.000   Jarque-Bera (JB):             3121.466
+Skew:                          -0.970   Prob(JB):                         0.00
+Kurtosis:                       2.593   Cond. No.                         1.00
+==============================================================================
+
+Notes:
+[1] R² is computed without centering (uncentered) since the model does not contain a constant.
+[2] Standard Errors assume that the covariance matrix of the errors is correctly specified.
+                                 OLS Regression Results                                
+=======================================================================================
+Dep. Variable:                 lprice   R-squared (uncentered):                   0.283
+Model:                            OLS   Adj. R-squared (uncentered):              0.282
+Method:                 Least Squares   F-statistic:                              931.5
+Date:                Wed, 29 Jan 2025   Prob (F-statistic):                   9.40e-173
+Time:                        11:39:38   Log-Likelihood:                         -5628.7
+No. Observations:                2364   AIC:                                  1.126e+04
+Df Residuals:                    2363   BIC:                                  1.127e+04
+Df Model:                           1                                                  
+Covariance Type:            nonrobust                                                  
+==============================================================================
+                 coef    std err          t      P&gt;|t|      [0.025      0.975]
+------------------------------------------------------------------------------
+cherry         3.1930      0.105     30.520      0.000       2.988       3.398
+==============================================================================
+Omnibus:                      396.547   Durbin-Watson:                   0.544
+Prob(Omnibus):                  0.000   Jarque-Bera (JB):              386.968
+Skew:                          -0.919   Prob(JB):                     9.35e-85
+Kurtosis:                       2.260   Cond. No.                         1.00
+==============================================================================
+
+Notes:
+[1] R² is computed without centering (uncentered) since the model does not contain a constant.
+[2] Standard Errors assume that the covariance matrix of the errors is correctly specified.</code></pre>
+</div>
+</div>
+<p><strong>Explanation:</strong></p>
+<ul>
+<li>The data is split by <code>province</code> into three subsets.</li>
+<li>Separate regression models are run for each subset to determine the effect of the <code>cherry</code> feature on <code>lprice</code>.</li>
+<li>Compare the coefficients to identify which province has the highest impact.</li>
+</ul>
+</section>
+</section>
+<section id="scenarios" class="level1">
+<h1>Scenarios</h1>
+<section id="ignorance-is-no-excuse" class="level2">
+<h2 class="anchored" data-anchor-id="ignorance-is-no-excuse">Ignorance is no Excuse</h2>
+<p>Dropping sensitive features like age, income, or gender does not guarantee an ethical model. Other correlated variables may act as proxies, perpetuating bias indirectly.</p>
 <p>Imagine a model to distinguish New York wines from those in California and Oregon. After a few days of work, you take some measurements and note: “I’ve achieved 91% accuracy on my model!”</p>
 <p>Should you be impressed? Why or why not?</p>
-<div id="d0971c6a" class="cell" data-execution_count="11">
-<details class="code-fold">
-<summary>Code</summary>
-<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="co"># </span><span class="al">TODO</span><span class="co">: Use simple descriptive statistics from the data to justify your answer.</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
-</div>
-<p>I should not be very impressed since the California and Oregon wines far outnumber the other New York observations accounting for roughly 25/27 of the data.</p>
-<blockquote class="blockquote">
-<p><span style="color:red;font-weight:bold">TODO</span>: <em>describe your reasoning here</em></p>
-</blockquote>
+<p>I should not be very impressed since the california and Oregon wines far outnumber the other New York observations accounting for roughly 25/27 of the data so a model that only guesses the majority class would be 91% accurate.</p>
 </section>
 <section id="on-ethics" class="level2">
 <h2 class="anchored" data-anchor-id="on-ethics">On Ethics</h2>
-<p>Why is understanding this vignette important to use machine learning in an ethical manner? Our training of models matters only as much as the data Quality. &gt; <span style="color:red;font-weight:bold">TODO</span>: <em>describe your reasoning here</em></p>
+<p>Why is understanding this vignette important to use machine learning in an ethical manner?</p>
+<p>Our training of models matters only as much as the data Quality and we have to account for the data when training models.</p>
 </section>
-<section id="ignorance-is-no-excuse" class="level2">
-<h2 class="anchored" data-anchor-id="ignorance-is-no-excuse">Ignorance is no excuse</h2>
+<section id="ignorance-is-no-excuse-1" class="level2">
+<h2 class="anchored" data-anchor-id="ignorance-is-no-excuse-1">Ignorance is no excuse</h2>
 <p>Imagine you are working on a model to predict the likelihood that an individual loses their job as the result of the changing federal policy under new presidential administrations. You have a very large dataset with many hundreds of features, but you are worried that including indicators like age, income or gender might pose some ethical problems. When you discuss these concerns with your boss, she tells you to simply drop those features from the model. Does this solve the ethical issue? Why or why not?</p>
-<blockquote class="blockquote">
-<p><span style="color:red;font-weight:bold">TODO</span>: <em>describe your reasoning here</em></p>
-<p>This does not solve the ethical issue because without specific fine-tuning of the data set it might end up categorizing those groups through indirect metrics to group those category.</p>
-</blockquote>
+<p>This does not solve the ethical issue because without specfic finetuning of the data set it might end up categorizing those groups through indirect metrics to group those category.</p>
 </section>
 </section>
 
