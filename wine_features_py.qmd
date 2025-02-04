@@ -33,16 +33,16 @@ wine = pyreadr.read_r(rds)[None]
 **Explanataion:**
 
 > <span style="color:red;font-weight:bold">TODO</span>: 
-Import the numpy library
-Import the pandas library
-Import the matplotlib.pyplot function
-Import the seaborn library
-Import sklearn's LinearRegression function
-Import sklearn's train_test_split function
-Import sklearn's mean_squared_error function
-Import sklearn's resample function
-Import the pyreadr library
-Read in the wine.rds dataset
+>Import the numpy library
+>Import the pandas library
+>Import the matplotlib.pyplot function
+>Import the seaborn library
+>Import sklearn's LinearRegression function
+>Import sklearn's train_test_split function
+>Import sklearn's mean_squared_error function
+>Import sklearn's resample function
+>Import the pyreadr library
+>Read in the wine.rds dataset
 
 # Feature Engineering
 
@@ -87,15 +87,29 @@ y = wino['lprice']
 
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=42)
-model = LinearRegression()
-model.fit(X_train, y_train)
-y_pred = model.predict(X_test)
-rmse = np.sqrt(mean_squared_error(y_test, y_pred))
-print(f'Root Mean Squared Error (RMSE): {rmse:.4f}')
-#
-```
 
-# Variable selection
+```
+```{python}
+n_bootstraps = 100  # Number of bootstrap samples
+rmse_list = []
+
+for _ in range(n_bootstraps):
+
+    X_resampled, y_resampled = resample(X_train, y_train, random_state=_)
+
+    model = LinearRegression()
+    model.fit(X_resampled, y_resampled)
+
+    y_pred = model.predict(X_test)
+
+    rmse = np.sqrt(mean_squared_error(y_test, y_pred))
+    rmse_list.append(rmse)
+
+mean_rmse = np.mean(rmse_list)
+std_rmse = np.std(rmse_list)
+print(f"Mean RMSE: {mean_rmse:.4f}")
+print(f"Standard Deviation of RMSE: {std_rmse:.4f}")
+```
 
 We now graph the importance of your 10 features.
 
