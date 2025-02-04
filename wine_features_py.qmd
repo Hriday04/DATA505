@@ -1,0 +1,105 @@
+**Abstract:**
+
+This is a technical blog post of **wine_features_py.qmd** an HTML file *and* [.qmd file](src/wine_features_py.qmd) hosted on GitHub pages.
+
+# Setup
+
+**Set Up Python:**
+```{python}
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error
+from sklearn.utils import resample
+```
+
+**Set Up R Compatability:**
+```{python}
+import pyreadr
+```
+
+**Step Up Dataframe:**
+```{python}
+#url = 'https://cd-public.github.io/D505/dat/'
+rds = 'wine.rds'
+#pyreadr.download_file(url + rds, rds) 
+wine = pyreadr.read_r(rds)[None]      
+```
+
+**Explanataion:**
+
+> <span style="color:red;font-weight:bold">TODO</span>: 
+Import the numpy library
+Import the pandas library
+Import the matplotlib.pyplot function
+Import the seaborn library
+Import sklearn's LinearRegression function
+Import sklearn's train_test_split function
+Import sklearn's mean_squared_error function
+Import sklearn's resample function
+Import the pyreadr library
+Read in the wine.rds dataset
+
+# Feature Engineering
+
+We begin by engineering an number of features.
+
+1. Create a total of 10 features (including points). 
+2. Remove all rows with a missing value. 
+3. Ensure only log(price) and engineering features are the only columns that remain in the `wino` dataframe.
+
+```{python}
+wine['lprice'] = wine['price'].apply(lambda x: np.log(x))
+wine['age']= 2025- wine['year']
+wine['points_squared'] = wine['points'] ** 2
+wine['age_squared'] = wine['age'] ** 2
+wine['price_per_point'] = wine['price'] / wine['points']
+wine['points_age_interaction'] = wine['points'] * wine['age']
+wine['is_portugal'] = (wine['country'] == 'Portugal').astype(int)
+wine['is_douro'] = (wine['province'] == 'Douro').astype(int)
+wine["is_voss"]= (wine['taster_name'] == 'Roger Voss').astype(int)
+wine['is_willamette'] = (wine['region_1'] == 'Willamette Valley').astype(int)
+
+wine.head()
+wino = wine.dropna()
+
+```
+
+# Skelarn
+
+We now use a train/test split to evaluate the features.
+
+1. Use the Sklearn library to partition the wino dataframe into an 75/25 split. 
+2. Run a linear regression with bootstrap resampling. 
+3. Report RMSE on the test partition of the data.
+
+```{python}
+features = ['lprice', 'points', 'age', 'points_squared', 'age_squared',
+            'price_per_point', 'points_age_interaction', 'is_portugal',
+            'is_douro', 'is_voss', 'is_willamette']
+wino = wino[features]
+X = wino.drop(columns=['lprice'])
+y = wino['lprice']
+
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=42)
+model = LinearRegression()
+model.fit(X_train, y_train)
+y_pred = model.predict(X_test)
+rmse = np.sqrt(mean_squared_error(y_test, y_pred))
+print(f'Root Mean Squared Error (RMSE): {rmse:.4f}')
+#
+```
+
+# Variable selection
+
+We now graph the importance of your 10 features.
+
+```{python}
+plt.bar(wino.columns.drop('lprice'), model.coef_)
+_ = plt.xticks(rotation=90)
+```
