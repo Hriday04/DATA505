@@ -1,0 +1,154 @@
+---
+title: $K$NN
+author: "Hriday!"
+date: "02/10/2025"
+jupyter: python3
+format: 
+  html:  # You will quite likely want to change all but the last one, to taste
+    theme: superhero  
+    mainfont: monospace
+    highlight-style: github
+    title-block-banner: true
+    embed-resources: true
+---
+
+**Abstract:**
+
+This is a technical blog post of **both** an HTML file *and* [.qmd file](https://raw.githubusercontent.com/cd-public/D505/refs/heads/master/hws/src/knn.qmd) hosted on GitHub pages.
+
+# 1. Setup
+
+```{python}
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+from sklearn.linear_model import LinearRegression
+from sklearn.preprocessing import PowerTransformer
+from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.metrics import confusion_matrix, make_scorer, cohen_kappa_score
+from sklearn.metrics import classification_report
+from sklearn.preprocessing import StandardScaler
+
+```
+
+```{python}
+path="/Users/hridayraj/Desktop/sp25/ml/wine.pickle"
+wine = pd.read_pickle("/Users/hridayraj/Desktop/sp25/ml/wine.pickle")
+```
+
+## 2. $K$NN Concepts
+
+> [TODO]{style="color:red;font-weight:bold"}: *Explain how the choice of K affects the quality of your prediction when using a* $K$ Nearest Neighbors algorithm.
+>
+> Selecting too small of a $K$ makes it so that the Algorthims is vulnerable to a noisy dataset but selecting too high of a $K$ might make it so you just pick the majority class.
+
+## 3. Feature Engineering
+
+1.  Create a version of the year column that is a *factor* (instead of numeric).
+2.  Create dummy variables that indicate the presence of "cherry", "chocolate" and "earth" in the description.
+
+-   Take care to handle upper and lower case characters.
+
+3.  Create 3 new features that represent the interaction between *time* and the cherry, chocolate and earth inidicators.
+4.  Remove the description column from the data.
+
+```{python}
+
+wino = wine[["year", "price","province", "points", "description"]]
+wino["year"]= wino["year"].astype('category')
+notes = ['cherry', 'chocolate', 'earth']
+for note in notes:
+    wine[f'note_{note}'] = wine['description'].str.contains(note, case=False, na=False)
+wino = wino.drop('description', axis=1)
+```
+
+## 4. Preprocessing
+
+1.  Preprocess the dataframe from the previous code block using BoxCox, centering and scaling of the numeric features
+2.  Create dummy variables for the `year` factor column
+
+```{python}
+numeric_cols = wino.select_dtypes(include=['number']).copy()
+
+if (numeric_cols <= 0).any().any():
+    numeric_cols += 1 - numeric_cols.min()
+
+pt = PowerTransformer(method='box-cox')
+boxcox_result = pd.DataFrame(pt.fit_transform(numeric_cols), columns=numeric_cols.columns)
+
+scaler = StandardScaler()
+
+scaled_numeric = pd.DataFrame(scaler.fit_transform(boxcox_result), columns=numeric_cols.columns)
+
+wino_encoded = pd.get_dummies(wino, columns=['year'], drop_first=True)
+```
+
+```{python}
+wino_encoded = wino_encoded.drop(columns=numeric_cols.columns.tolist())
+
+wino_f = pd.concat([wino_encoded, scaled_numeric], axis=1)
+```
+
+1.  Split the dataframe into an 80/20 training and test set
+2.  Use Caret to run a $K$NN model that uses our engineered features to predict province
+
+-   use 5-fold cross validated subsampling
+-   allow Caret to try 15 different values for $K$
+
+3.  Display the confusion matrix on the test data
+
+```{python}
+wino_d = wino_f.dropna(subset=['province'])
+province_counts = wino_d['province'].value_counts()
+wino_d['province'] = wino_d['province'].apply(lambda x: x if province_counts[x] > 2 else 'Other')
+
+# Encode categorical variables
+X = pd.get_dummies(wino_d.drop(columns=['province']))
+y = wino_d['province']
+
+# Split data
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, stratify=y, random_state=505)
+param_grid = {'n_neighbors': range(1, 16)}
+knn = KNeighborsClassifier()
+grid_search = GridSearchCV(knn, param_grid, cv=5, scoring='accuracy', n_jobs=-1)
+grid_search.fit(X_train, y_train)
+
+best_k = grid_search.best_params_['n_neighbors']
+print(f"Best k: {best_k}")
+best_knn = KNeighborsClassifier(n_neighbors=best_k)
+best_knn.fit(X_train, y_train)
+
+y_pred = best_knn.predict(X_test)
+
+
+```
+
+```{python}
+conf_matrix_df = pd.DataFrame(confusion_matrix(y_test, y_pred, labels=best_knn.classes_),
+index=best_knn.classes_, 
+columns=best_knn.classes_)
+
+sns.heatmap(conf_matrix_df, annot=True, fmt='d', cmap='Blues')
+plt.xlabel("Predicted Label")
+plt.ylabel("True Label")
+plt.title("Confusion Matrix")
+plt.show()
+
+# Print classification report
+print(classification_report(y_test, y_pred))
+```
+
+## 6. Kappa
+
+How do we determine whether a Kappa value represents a good, bad or some other outcome?
+
+> A Kappa value closer to 1 indicates strong agreement, whilst near 0 suggests agreement by chance, and below 0 implies worse-than-random classification
+
+## 7. Improvement
+
+How can we interpret the confusion matrix, and how can we improve in our predictions?
+
+> IThe confusion matrix shows many misclassifications, likely due to a high number of provinces and class imbalance. We can improve predictions can involve feature selection, hyperparameter tuning,.
