@@ -1,0 +1,119 @@
+---
+title: "Conditional Probability"
+author: "Hriday Raj"
+date: "02/17/2025"
+jupyter: python3
+format: 
+  html:  # You will quite likely want to change all but the last one, to taste
+    theme: superhero  
+    mainfont: monospace
+    highlight-style: github
+    title-block-banner: true
+    embed-resources: true
+---
+
+**Abstract:**
+
+This is a technical blog post of **both** an HTML file *and* [.qmd file](https://raw.githubusercontent.com/cd-public/D505/refs/heads/master/hws/src/cond.qmd) hosted on GitHub pages.
+
+# 0. Quarto Type-setting
+
+- This document is rendered with Quarto, and configured to embed an images using the `embed-resources` option in the header.
+- If you wish to use a similar header, here's is the format specification for this document:
+
+```email
+format: 
+  html:
+    embed-resources: true
+```
+
+# 1. Setup
+
+**Step Up Code:**
+
+```{python}
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.model_selection import train_test_split, cross_val_score, KFold
+from sklearn.naive_bayes import BernoulliNB
+import pyreadr
+from sklearn.feature_extraction.text import TfidfVectorizer
+path="/Users/hridayraj/Desktop/sp25/ml/pinot.pickle"
+pinot = pd.read_pickle(path)
+data=pinot
+```
+
+# 2. Conditional Probability
+
+Calculate the probability that a Pinot comes from Burgundy given it has the word 'fruit' in the description.
+
+$$
+P({\rm Burgundy}~|~{\rm Fruit})
+
+$$
+
+```{python}
+# TODO
+a_b=pinot["description"].str.contains("fruit", case = False) & (pinot.province=="Burgundy")
+a_b=a_b.sum()/len(pinot)
+b=(pinot.province=="Burgundy").sum()/len(pinot)
+agb=a_b/b
+
+print(agb)
+```
+
+# 3. Naive Bayes Algorithm
+
+We train a naive bayes algorithm to classify a wine's province using:
+1. An 80-20 train-test split.
+2. Three features engineered from the description
+3. 5-fold cross validation.
+
+We report Kappa after using the model to predict provinces in the holdout sample.
+```{python}
+pinot["berry"]=pinot["description"].str.contains("berry", case = False)
+pinot["earthy"]=pinot["description"].str.contains("earth", case = False)
+pinot["blended"]=pinot["description"].str.contains("blend", case = False)
+
+```
+```{python}
+x= pinot[["earthy", "blended", "berry"]]
+y= pinot["province"]
+n_bayes = BernoulliNB()
+kf = KFold(n_splits=5, shuffle=True, random_state=42)
+cross_val_results = cross_val_score(n_bayes, x, y, cv=kf)
+print(f'Cross-Validation Results (Accuracy): {cross_val_results}')
+print(f'Mean Accuracy: {cross_val_results.mean()}')
+```
+
+# 4. Frequency Differences
+
+We find the three words that most distinguish New York Pinots from all other Pinots.
+
+```{python}
+# TODO
+
+ny_pinots = data[data['province'] == 'New_York']['description']
+not_ny_pinots = data[data['province'] != 'New_York']['description']
+tfidf = TfidfVectorizer(stop_words='english', max_features=5000)
+
+tfidf_ny = tfidf.fit_transform(ny_pinots)
+tfidf_other = tfidf.transform(not_ny_pinots)
+
+ny_tfidf_mean = tfidf_ny.mean(axis=0).A1
+other_tfidf_mean = tfidf_other.mean(axis=0).A1
+
+tfidf_diff = ny_tfidf_mean - other_tfidf_mean
+
+feature_names = tfidf.get_feature_names_out()
+top_3_indices = tfidf_diff.argsort()[-3:][::-1]
+top_3_words = [feature_names[i] for i in top_3_indices]
+
+print("Top 3 distinguishing words for New York Pinots:", top_3_words)
+
+
+```
+
+# 5. Extension
