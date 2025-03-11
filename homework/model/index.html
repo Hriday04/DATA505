@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Model1</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootswatch@4.5.2/dist/superhero/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      font-family: monospace;
+    }
+    pre {
+      background-color: #f8f9fa;
+      padding: 10px;
+      border-radius: 4px;
+    }
+    .highlight {
+      background-color: #f8f9fa;
+      padding: 10px;
+      border-radius: 4px;
+    }
+    h1, h2, h3, h4 {
+      margin-top: 20px;
+    }
+    .banner {
+      background-color: #4e5d6c;
+      padding: 20px;
+      color: #ffffff;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="banner">
+    <h1>Model1</h1>
+    <p><strong>Author:</strong> Hriday Raj</p>
+    <p><strong>Date:</strong> 03/17/2025</p>
+  </div>
+
+  <h2>Wine Feature Engineering and Model Training</h2>
+
+  <pre><code># Import necessary libraries
+import numpy as np
+import pandas as pd
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.model_selection import train_test_split
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.metrics import cohen_kappa_score
+from nltk.stem import WordNetLemmatizer
+import nltk
+from gensim.models import Word2Vec
+from textblob import TextBlob
+from nltk.sentiment import SentimentIntensityAnalyzer
+from textstat import flesch_reading_ease
+from sklearn.impute import SimpleImputer
+from sklearn.preprocessing import StandardScaler
+
+# Load the dataset
+path = "/Users/hridayraj/Desktop/sp25/ml/model1/model.pickle"
+wine = pd.read_pickle(path)</code></pre>
+
+  <pre><code># Apply log transformations to 'price' and 'points'
+wine['log_price'] = np.log1p(wine['price'])
+wine['log_points'] = np.log1p(wine['points'])
+
+# Create a log-transformed version of 'points_per_price'
+wine['log_points_per_price'] = wine['log_points'] / wine['log_price']</code></pre>
+
+  <pre><code># Lemmatize text descriptions
+nltk.download('wordnet')
+lemmatizer = WordNetLemmatizer()
+
+def lemmatize_text(text):
+    return ' '.join([lemmatizer.lemmatize(word) for word in str(text).split()])
+
+wine['description'] = wine['description'].apply(lemmatize_text)
+
+# Feature: description word count
+wine['desc_word_count'] = wine['description'].apply(lambda x: len(str(x).split()))</code></pre>
+
+  <pre><code># Train Word2Vec model on descriptions
+sentences = [str(desc).split() for desc in wine['description']]
+word2vec_model = Word2Vec(sentences, vector_size=100, window=5, min_count=1, workers=4)
+
+# Create document embeddings by averaging word vectors
+def get_doc_embedding(text):
+    words = str(text).split()
+    vectors = [word2vec_model.wv[word] for word in words if word in word2vec_model.wv]
+    if len(vectors) > 0:
+        return np.mean(vectors, axis=0)
+    else:
+        return np.zeros(100)  # Return zero vector if no words are found
+
+# Add document embeddings as features
+doc_embeddings = np.array([get_doc_embedding(desc) for desc in wine['description']])
+embedding_df = pd.DataFrame(doc_embeddings, columns=[f'embedding_{i}' for i in range(doc_embeddings.shape[1])])
+
+# Concatenate embeddings to the original DataFrame
+wine = pd.concat([wine.reset_index(drop=True), embedding_df.reset_index(drop=True)], axis=1)</code></pre>
+
+  <pre><code># Feature: price bucket (categorical)
+def price_bucket_func(price):
+    if price < 20:
+        return 'cheap'
+    elif price < 50:
+        return 'midrange'
+    else:
+        return 'expensive'
+wine['price_bucket'] = wine['price'].apply(price_bucket_func)
+
+# Feature: sentiment analysis using TextBlob
+wine['sentiment_polarity'] = wine['description'].apply(lambda x: TextBlob(str(x)).sentiment.polarity)
+wine['sentiment_subjectivity'] = wine['description'].apply(lambda x: TextBlob(str(x)).sentiment.subjectivity)
+
+# Feature: sentiment analysis using VADER
+nltk.download('vader_lexicon')
+sia = SentimentIntensityAnalyzer()
+wine['vader_sentiment'] = wine['description'].apply(lambda x: sia.polarity_scores(str(x))['compound'])
+
+# Feature: readability score
+wine['readability'] = wine['description'].apply(lambda x: flesch_reading_ease(str(x)))
+
+# One-Hot Encode Categorical Columns
+wine = pd.get_dummies(wine, columns=['price_bucket'], drop_first=True)</code></pre>
+
+  <pre><code># Impute missing values
+imputer = SimpleImputer(strategy='median')
+wine[['log_price', 'log_points']] = imputer.fit_transform(wine[['log_price', 'log_points']])
+
+# Scale numeric features
+scaler = StandardScaler()
+numeric_cols = ['log_price', 'log_points', 'log_points_per_price', 'desc_word_count', 'sentiment_polarity', 'sentiment_subjectivity', 'vader_sentiment', 'readability']
+wine[numeric_cols] = scaler.fit_transform(wine[numeric_cols])
+
+# Drop unnecessary columns
+wine = wine.drop(columns=['description'])</code></pre>
+
+  <pre><code>from sklearn.model_selection import train_test_split, cross_val_score
+from sklearn.neighbors import KNeighborsClassifier #, GaussianNB
+from sklearn.metrics import cohen_kappa_score
+
+#wine = pd.read_pickle("group_m_method.pickle") # or url
+train, test = train_test_split(wine, test_size=0.2, stratify=wine['province'])
+
+# Separate features and target variable
+X_train, X_test = train.drop(columns=['province']), test.drop(columns=['province'])
+y_train, y_test = train['province'], test['province']
+
+knn = KNeighborsClassifier() # or GaussianNB
+knn.fit(X_train, y_train)
+
+kappa = cohen_kappa_score(y_test, knn.predict(X_test))
+
+print(f"Cohen's Kappa: {kappa}")</code></pre>
+
+</body>
+</html>
