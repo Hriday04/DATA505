@@ -1,0 +1,86 @@
+---
+title: "Bank Churn Prediction with Polars"
+author: "Group 3"
+date: "2025-04-14"
+format: html
+jupyter: python3
+---
+
+# Bank Churn Prediction – Feature Engineering and Model Training
+
+```{python}
+import polars as pl
+import pandas as pd
+import numpy as np
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import StratifiedKFold, cross_val_score
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import make_scorer, cohen_kappa_score
+```
+
+
+```{python}
+df = pl.read_csv("/home/hriday/Desktop/wu_cs/ml/DATA505/homework/model/BankChurners.csv")
+
+```
+
+```{python}
+df = pl.read_csv("/home/hriday/Desktop/wu_cs/ml/DATA505/homework/model/BankChurners.csv")
+
+df = df.with_columns(
+    (pl.col("Churn") == "yes").cast(pl.Int8).alias("Churn")
+)
+
+```
+
+```{python}
+df = df.with_columns([
+    (pl.col("Total_Trans_Ct") / pl.col("Customer_Age").cast(pl.Float64)).alias("Trans_Freq_Per_Year"),
+
+
+    (pl.col("Avg_Utilization_Ratio") > 0.5).cast(pl.Int8).alias("Utilization_High"),
+    
+    pl.col("Months_on_book").cast(pl.Float64).alias("Customer_Loyalty"),
+
+    (pl.col("Total_Ct_Chng_Q4_Q1") < 0.5).cast(pl.Int8).alias("Drop_Activity"),
+
+    ((pl.col("Total_Revolving_Bal") + 1) / (pl.col("Credit_Limit") + 1)).alias("Revolving_Ratio")
+
+])
+
+final = df.select([
+    "Trans_Freq_Per_Year",
+    "Utilization_High",
+    "Customer_Age",
+    "Drop_Activity",
+    "Revolving_Ratio",
+    "Churn"
+]).drop_nulls()
+
+```
+
+
+```{python}
+pdf= final.to_pandas()
+pdf.to_csv("/home/hriday/Desktop/wu_cs/ml/DATA505/homework/model/mod2.csv")
+```
+
+```{python}
+X = pdf.drop(columns="Churn")
+y = pdf["Churn"]
+
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+
+model = LogisticRegression(max_iter=100)
+cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+kappa_scorer = make_scorer(cohen_kappa_score)
+
+scores = cross_val_score(model, X_scaled, y, cv=cv, scoring=kappa_scorer)
+print(f"Cohen’s Kappa (mean of 5 folds): {scores.mean():.4f}")
+
+```
+
+```{python}
+ 
+```
