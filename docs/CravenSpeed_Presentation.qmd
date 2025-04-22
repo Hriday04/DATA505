@@ -1,0 +1,249 @@
+---
+title: "CravenSpeed Profit Prediction"
+author: "Team $i$"
+date: "04/21/2025"
+format:
+  revealjs:
+    theme: solarized
+    slide-number: true
+    toc: false
+    transition: none
+    incremental: false
+    backgroundTransition: none
+---
+
+# Goals, Constraints & Data
+
+**Goal:** Predict pre-launch product profit  
+**Constraints:**  
+- Max 10 engineered features  
+- Only pre-launch columns  
+- Evaluated by RMSE on unseen data
+
+**Target:**  
+$$\text{Profit} = \text{Revenue} - (\text{BOM Cost} \times \text{Units Sold})$$  
+
+```{python}
+import pandas as pd
+import matplotlib.pyplot as plt
+df = pd.read_csv("crave_train.csv")
+df["Profit"] = df["Revenue 2019 to present"] - df["BOM Cost"] * df["Units Sold"]
+```
+
+
+# Data Distribution & Correlation
+
+::: {.columns}
+
+::: {.column width="50%"}
+```{python}
+plt.figure(figsize=(6, 4))
+counts, bins, _ = plt.hist(df["Profit"], bins=20, edgecolor='black')
+for count, bin_edge in zip(counts, bins):
+    if count > 0:
+        plt.text(bin_edge + (bins[1] - bins[0]) / 2, count + 5, str(int(count)),
+                 ha='center', va='bottom', fontsize=8)
+plt.title("Distribution of Actual Profit")
+plt.xlabel("Profit ($)")
+plt.ylabel("Frequency")
+plt.grid(True)
+plt.tight_layout()
+plt.show()
+```
+:::
+
+::: {.column width="50%"}
+```{python}
+
+import seaborn as sns
+plt.figure(figsize=(6, 4))
+sns.heatmap(df.select_dtypes(include="number").corr(), annot=True, fmt=".2f", cmap="coolwarm")
+plt.title("Correlation Matrix")
+plt.tight_layout()
+plt.show()
+```
+:::
+
+:::
+
+
+
+
+## Engineered Features
+
+
+<div style="font-size: 80%">
+
+**10 total features grouped by category:**
+
+- **Cost-based:** `log_bom_cost`, `components_per_dollar`  
+- **Physical:** `price_per_pound`, `log_weight`  
+- **Time:** `year_range`  
+- **Encoded:** `designer_code`, `material_code`, `mfg_code`, etc.
+
+<div class="columns" style="margin-top: 1rem;">
+  <div class="column" style="width: 50%">
+
+  **Key Variables**
+  - `components_per_dollar`: efficiency per part  
+  - `log_bom_cost`: scales large values  
+  - `price_per_pound`: pricing power  
+  - `year_range`: longevity insight  
+
+  </div>
+</div>
+
+</div>
+
+---
+
+
+### Model: CatBoost
+
+**What it is:**  
+Gradient boosting that handles categorical features natively.
+
+**Why I used it:**  
+- No need for manual encoding  
+- Strong performance on mixed data types
+
+<div class="columns smaller">
+
+<div class="column" style="width: 50%">
+**Pros**  
+- Handles categoricals internally  
+- Often high accuracy  
+- Built-in regularization  
+</div>
+
+<div class="column" style="width: 50%">
+**Cons**  
+- Higher memory usage  
+- Slower on large datasets  
+</div>
+
+</div>
+
+# Catboost
+
+<img src="https://www.researchgate.net/profile/Mehdi-Jamei/publication/370695897/figure/fig3/AS:11431281170540470@1687832218068/The-flow-diagram-of-the-CatBoost-model.png" alt="CatBoost Architecture" style="width: 3%; margin: auto; display: block;">
+
+
+---
+
+
+###  HistGradientBoosting (HistGBR)
+
+**How it works:**  
+Binning-based gradient boosting (fast and built into scikit-learn)
+
+<div class="columns smaller">
+
+<div class="column" style="width: 50%">
+**Pros**  
++ Super fast training  
++ Native support in `sklearn`  
+</div>
+
+<div class="column" style="width: 50%">
+**Cons**  
+- Needs numeric encoding  
+- Can be sensitive to bin size
+</div>
+
+</div>
+Histogram Gradient Boosting
+
+# Histogram Gradient Boosting
+
+<img src="https://raw.githubusercontent.com/Hriday04/DATA505/main/final/images/histboost.png" alt="Histogram Gradient Boosting" style="width: 60%; margin: auto; display: block;">
+
+
+
+# What is Model Stacking?
+
+- Combines predictions from multiple models
+- Learns how to weigh their strengths
+- My meta-model: Ridge Regressor
+
+:::{.center}
+
+<img src="https://towardsdatascience.com/wp-content/uploads/2021/10/10qQTUDfImZYQBsyn9F6dpw.png" alt="Model Stacking" style="width: 60%; margin: auto; display: block;">
+
+:::
+
+
+# Why Stack These Models?
+
+:::{.columns}
+::: {.column width="50%"}
+**CatBoost:**  
++️ Handles categoricals  
+- High memory
+
+**HistGBR:**  
++️ Very fast  
+- Needs encoding
+:::
+
+::: {.column width="50%"}
+
+**Stacking:**  
++️ Combines all strengths  
++️ Reduces error further
+:::
+:::
+
+# Model Comparison (Validation RMSE)
+
+I tested four models on a holdout validation set.
+
+```{python}
+import matplotlib.pyplot as plt
+
+rmse_results = {
+    "Linear": 1845.59,
+    "HistGBR": 1943.00,
+    "CatBoost": 2069.16,
+    "Stacked": 1793.45
+}
+
+plt.figure(figsize=(7, 4))
+plt.bar(rmse_results.keys(), rmse_results.values(), color='steelblue')
+plt.ylabel("RMSE ($)")
+plt.title("Model Comparison on Validation Set")
+plt.tight_layout()
+plt.show()
+
+```
+
+
+
+# Interpretation & Limitations
+
+**Insights:**  
+- `price_per_pound` is strongly predictive  
+- High component count needs cost efficiency  
+- Designer/Material effects inconsistent
+
+**Limits:**  
+- Relies on past pricing  
+- May underperform on brand-new designs  
+- Categorical noise risk remains
+
+
+# Business Impact
+
+- Profit estimation at concept stage  
+- Helps select high-ROI projects  
+- Informs pricing + BOM constraints early
+
+
+# Future Work
+
+- Add SHAP for explainability  
+- Include market-level variables  
+- Time-aware or uncertainty-aware models  
+---
+
+# QUESTIONS?
